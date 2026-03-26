@@ -1,0 +1,45 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "anp-bridge-mcp-server"
+version = "0.1.0"
+description = "MCP Server bridging the Agent Network Protocol (ANP) with MCP agents — identity, discovery, messaging"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+authors = [{ name = "AiAgentKarl" }]
+keywords = [
+    "mcp",
+    "model-context-protocol",
+    "agent-network-protocol",
+    "anp",
+    "agent",
+    "ai",
+    "did",
+    "decentralized-identity",
+    "agent-discovery",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Internet :: WWW/HTTP",
+]
+dependencies = ["mcp[cli]>=1.0.0", "httpx>=0.25.0", "pydantic>=2.0.0"]
+
+[project.urls]
+Homepage = "https://github.com/AiAgentKarl/anp-bridge-mcp-server"
+Repository = "https://github.com/AiAgentKarl/anp-bridge-mcp-server"
+
+[project.scripts]
+anp-bridge-mcp-server = "src.server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
