@@ -64,21 +64,32 @@ def register_anp_tools(mcp: FastMCP) -> None:
 
     @mcp.tool()
     async def discover_anp_agents(
-        query: str = "", capability: str = "", limit: int = 10
+        query: str = "",
+        capability: str = "",
+        limit: int = 10,
+        relay_url: str = "",
     ) -> str:
         """
         Sucht nach ANP-kompatiblen Agenten im Netzwerk.
+        Hybrid: .well-known zuerst, dann AgentNexus Relay, dann Fallback.
 
         Args:
             query: Freitext-Suche nach Agenten-Namen oder Beschreibung
             capability: Filtere nach spezifischer Capability (z.B. 'text-generation', 'tool-use')
             limit: Maximale Anzahl Ergebnisse (Standard: 10)
+            relay_url: Optional: Relay-URL fuer dynamische Discovery (z.B. 'https://relay.agentnexus.top')
+                       Protokoll-IDs im Format namespace:name (z.B. 'anp:v1', 'mcp:latest')
 
         Returns:
             Liste gefundener Agenten mit DIDs, Capabilities und Endpoints
         """
         try:
-            result = await search_anp_registry(query=query, capability=capability, limit=limit)
+            result = await search_anp_registry(
+                query=query,
+                capability=capability,
+                limit=limit,
+                relay_url=relay_url if relay_url else None,
+            )
             return json.dumps(result, indent=2, ensure_ascii=False)
         except Exception as e:
             return json.dumps({"error": str(e), "query": query})

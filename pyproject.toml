@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "anp-bridge-mcp-server"
-version = "0.1.0"
+version = "0.2.0"
 description = "MCP Server bridging the Agent Network Protocol (ANP) with MCP agents — identity, discovery, messaging"
 readme = "README.md"
 license = { text = "MIT" }

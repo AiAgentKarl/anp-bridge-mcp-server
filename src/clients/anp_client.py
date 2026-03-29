@@ -91,13 +91,20 @@ async def fetch_agent_card(base_url: str) -> dict[str, Any]:
 
 
 async def search_anp_registry(
-    query: str = "", capability: str = "", limit: int = 10
+    query: str = "",
+    capability: str = "",
+    limit: int = 10,
+    relay_url: str | None = None,
 ) -> dict[str, Any]:
     """
     Sucht im ANP Agent Registry nach Agenten.
-    Fallback auf simuliertes Verzeichnis wenn Registry nicht erreichbar.
+    Strategie: .well-known zuerst, dann Relay (AgentNexus), dann Fallback.
+
+    relay_url: Optional -- z.B. 'https://relay.agentnexus.top' fuer dynamische Discovery.
+    Protokoll-ID Format: namespace:name (z.B. 'anp:v1', 'mcp:latest', 'did:web')
     """
     async with httpx.AsyncClient(timeout=HTTP_TIMEOUT) as client:
+        # Schritt 1: Offizielles ANP Registry versuchen
         try:
             params: dict[str, Any] = {"limit": limit}
             if query:
@@ -120,6 +127,33 @@ async def search_anp_registry(
                 }
         except Exception:
             pass
+
+        # Schritt 2: AgentNexus Relay als dynamische Discovery (falls angegeben)
+        if relay_url:
+            try:
+                relay_base = relay_url.rstrip("/")
+                # Relay-Lookup: Protokoll-Discovery via ANPN
+                protocol_id = f"anp:v1"
+                if capability:
+                    protocol_id = f"{capability.replace('-', ':')}"
+                resp = await client.get(
+                    f"{relay_base}/relay/anpn-lookup/search/{protocol_id}",
+                    params={"q": query, "limit": limit},
+                    follow_redirects=True,
+                )
+                if resp.status_code == 200:
+                    data = resp.json()
+                    agents = data.get("agents", data.get("results", []))
+                    return {
+                        "source": "relay-anpn",
+                        "relay_url": relay_url,
+                        "protocol_id": protocol_id,
+                        "query": query,
+                        "count": len(agents),
+                        "agents": agents,
+                    }
+            except Exception:
+                pass
 
     # Fallback: Bekannte oeffentliche Agenten aus ANP-kompatiblen Quellen
     known_agents = [
